@@ -28,7 +28,9 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
+
 import androidx.annotation.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -42,6 +44,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
     private static EnumMap<MMKVRecoverStrategic, Integer> recoverIndex;
     private static EnumMap<MMKVLogLevel, Integer> logLevel2Index;
     private static MMKVLogLevel[] index2LogLevel;
+
     static {
         recoverIndex = new EnumMap<>(MMKVRecoverStrategic.class);
         recoverIndex.put(MMKVRecoverStrategic.OnErrorDiscard, 0);
@@ -54,20 +57,23 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
         logLevel2Index.put(MMKVLogLevel.LevelError, 3);
         logLevel2Index.put(MMKVLogLevel.LevelNone, 4);
 
-        index2LogLevel = new MMKVLogLevel[] {MMKVLogLevel.LevelDebug, MMKVLogLevel.LevelInfo,
-                                             MMKVLogLevel.LevelWarning, MMKVLogLevel.LevelError,
-                                             MMKVLogLevel.LevelNone};
+        index2LogLevel = new MMKVLogLevel[]{MMKVLogLevel.LevelDebug, MMKVLogLevel.LevelInfo,
+                MMKVLogLevel.LevelWarning, MMKVLogLevel.LevelError,
+                MMKVLogLevel.LevelNone};
     }
 
-    public interface LibLoader { void loadLibrary(String libName); }
+    public interface LibLoader {
+        void loadLibrary(String libName);
+    }
 
     // call on program start
     public static String initialize(Context context) {
         String root = context.getFilesDir().getAbsolutePath() + "/mmkv";
         MMKVLogLevel logLevel =
-            BuildConfig.DEBUG ? MMKVLogLevel.LevelDebug : MMKVLogLevel.LevelInfo;
+                BuildConfig.DEBUG ? MMKVLogLevel.LevelDebug : MMKVLogLevel.LevelInfo;
         return initialize(root, null, logLevel);
     }
+
     public static String initialize(Context context, MMKVLogLevel logLevel) {
         String root = context.getFilesDir().getAbsolutePath() + "/mmkv";
         return initialize(root, null, logLevel);
@@ -75,18 +81,20 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
 
     public static String initialize(String rootDir) {
         MMKVLogLevel logLevel =
-            BuildConfig.DEBUG ? MMKVLogLevel.LevelDebug : MMKVLogLevel.LevelInfo;
+                BuildConfig.DEBUG ? MMKVLogLevel.LevelDebug : MMKVLogLevel.LevelInfo;
         return initialize(rootDir, null, logLevel);
     }
+
     public static String initialize(String rootDir, MMKVLogLevel logLevel) {
         return initialize(rootDir, null, logLevel);
     }
 
     public static String initialize(String rootDir, LibLoader loader) {
         MMKVLogLevel logLevel =
-            BuildConfig.DEBUG ? MMKVLogLevel.LevelDebug : MMKVLogLevel.LevelInfo;
+                BuildConfig.DEBUG ? MMKVLogLevel.LevelDebug : MMKVLogLevel.LevelInfo;
         return initialize(rootDir, loader, logLevel);
     }
+
     public static String initialize(String rootDir, LibLoader loader, MMKVLogLevel logLevel) {
         if (loader != null) {
             if (BuildConfig.FLAVOR.equals("SharedCpp")) {
@@ -105,6 +113,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
     }
 
     static private String rootDir = null;
+
     public static String getRootDir() {
         return rootDir;
     }
@@ -216,7 +225,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
         }
 
         String processName =
-            MMKVContentProvider.getProcessNameByPID(context, android.os.Process.myPid());
+                MMKVContentProvider.getProcessNameByPID(context, android.os.Process.myPid());
         if (processName == null || processName.length() == 0) {
             simpleLog(MMKVLogLevel.LevelError, "process name detect fail, try again later");
             return null;
@@ -244,8 +253,8 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
                     MMKV mmkv = parcelableMMKV.toMMKV();
                     if (mmkv != null) {
                         simpleLog(MMKVLogLevel.LevelInfo,
-                                  mmkv.mmapID() + " fd = " + mmkv.ashmemFD()
-                                      + ", meta fd = " + mmkv.ashmemMetaFD());
+                                mmkv.mmapID() + " fd = " + mmkv.ashmemFD()
+                                        + ", meta fd = " + mmkv.ashmemMetaFD());
                     }
                     return mmkv;
                 }
@@ -465,8 +474,8 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
                 return creator.createFromParcel(source);
             } else {
                 throw new Exception("Parcelable protocol requires a "
-                                    + "non-null static Parcelable.Creator object called "
-                                    + "CREATOR on class " + name);
+                        + "non-null static Parcelable.Creator object called "
+                        + "CREATOR on class " + name);
             }
         } catch (Exception e) {
             simpleLog(MMKVLogLevel.LevelError, e.toString());
@@ -577,7 +586,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
     @Override
     public Map<String, ?> getAll() {
         throw new java.lang.UnsupportedOperationException(
-            "use allKeys() instead, getAll() not implement because type-erasure inside mmkv");
+                "use allKeys() instead, getAll() not implement because type-erasure inside mmkv");
     }
 
     @Nullable
@@ -733,6 +742,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
     // callback handler
     private static MMKVHandler gCallbackHandler;
     private static boolean gWantLogReDirecting = false;
+
     public static void registerHandler(MMKVHandler handler) {
         gCallbackHandler = handler;
 
@@ -807,6 +817,7 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
     // content change notification of other process
     // trigger by getXXX() or setXXX() or checkContentChangedByOuterProcess()
     private static MMKVContentChangeNotification gContentChangeNotify;
+
     public static void registerContentChangeNotify(MMKVContentChangeNotification notify) {
         gContentChangeNotify = notify;
         setWantsContentChangeNotify(gContentChangeNotify != null);
@@ -816,11 +827,14 @@ public class MMKV implements SharedPreferences, SharedPreferences.Editor {
         gContentChangeNotify = null;
         setWantsContentChangeNotify(false);
     }
-    private static void onContentChangedByOuterProcess(String mmapID) {
+
+    private static int onContentChangedByOuterProcess(String mmapID) {
         if (gContentChangeNotify != null) {
-            gContentChangeNotify.onContentChangedByOuterProcess(mmapID);
+            int code = gContentChangeNotify.onContentChangedByOuterProcess(mmapID);
         }
+        return 1;
     }
+
     private static native void setWantsContentChangeNotify(boolean needsNotify);
 
     // check change manually

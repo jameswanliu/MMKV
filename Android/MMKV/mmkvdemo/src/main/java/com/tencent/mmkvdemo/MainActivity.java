@@ -501,7 +501,8 @@ public class MainActivity
     }
 
     @Override
-    public void onContentChangedByOuterProcess(String mmapID) {
+    public int onContentChangedByOuterProcess(String mmapID) {
         Log.i("content changed", mmapID);
+        return 1;
     }
 }
